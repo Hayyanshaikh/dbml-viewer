@@ -26,6 +26,47 @@
         --tbl-hl-header: #1e3a5f;
         --tbl-hl-border: #3b82f6;
         --dimmed: 0.1;
+        --editor-bg: #0f1219;
+        --editor-code: #d6d9e2;
+        --editor-gutter: #4f5870;
+        --editor-gutter-border: #212736;
+        --field-name: #c8cad4;
+        --field-name-pk: #f0c060;
+        --field-type: #4a5068;
+        --row-divider: #1e2230;
+        --table-header-fill: #1e2230;
+        --table-header-text: #e2e4ea;
+        --table-header-rule: #252933;
+        --canvas-dot: #2a2f3e;
+      }
+
+      :root[data-theme="light"] {
+        --bg: #f3f6fb;
+        --surface: #ffffff;
+        --surface2: #eef2f9;
+        --border: #d6ddea;
+        --border2: #c2cde0;
+        --text: #1d2433;
+        --muted: #5e6a82;
+        --accent: #2563eb;
+        --accent-glow: rgba(37, 99, 235, 0.14);
+        --arrow-default: #8391ab;
+        --arrow-hover: #5f6d88;
+        --tbl-header: #d9e5ff;
+        --tbl-hl-header: #bed2ff;
+        --tbl-hl-border: #2563eb;
+        --editor-bg: #f7faff;
+        --editor-code: #1f2937;
+        --editor-gutter: #7b89a3;
+        --editor-gutter-border: #d9e1ef;
+        --field-name: #2a3650;
+        --field-name-pk: #a16207;
+        --field-type: #5f6d88;
+        --row-divider: #dce3f0;
+        --table-header-fill: #dde8ff;
+        --table-header-text: #1f2a42;
+        --table-header-rule: #cfd8ea;
+        --canvas-dot: #d8dfec;
       }
 
       * {
@@ -39,12 +80,14 @@
         color: var(--text);
         font-family: "JetBrains Mono", monospace;
         min-height: 100vh;
+        height: 100vh;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
 
       header {
-        padding: 1.25rem 2rem;
+        padding: 0.75rem 2rem;
         border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
@@ -67,6 +110,27 @@
         border: 1px solid var(--border);
         padding: 2px 8px;
         border-radius: 4px;
+      }
+
+      .header-spacer {
+        flex: 1;
+      }
+
+      #theme-toggle {
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      #theme-toggle:hover {
+        border-color: var(--accent);
+        color: var(--accent);
       }
 
       #drop-zone {
@@ -119,6 +183,7 @@
       #canvas-section {
         display: none;
         flex: 1;
+        min-height: 0;
         overflow: hidden;
         flex-direction: column;
       }
@@ -231,10 +296,214 @@
         color: var(--accent);
       }
 
+      #write-btn {
+        margin-top: 0.85rem;
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      #write-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
       #canvas-body {
         flex: 1;
         min-height: 0;
         display: flex;
+        overflow: hidden;
+      }
+
+      #editor-sidebar {
+        width: 340px;
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        min-width: 240px;
+        transition: width 0.2s ease;
+        overflow: hidden;
+      }
+
+      #editor-sidebar.collapsed {
+        width: 36px;
+        min-width: 36px;
+      }
+
+      #editor-head {
+        padding: 10px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .sidebar-head-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .collapse-btn {
+        width: 22px;
+        height: 22px;
+        border: 1px solid var(--border2);
+        background: transparent;
+        color: var(--muted);
+        border-radius: 4px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 1;
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+
+      .collapse-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #editor-head h3 {
+        font-size: 11px;
+        font-family: "Syne", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        color: var(--text);
+      }
+
+      #editor-head p {
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      #dbml-editor {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        flex: 1;
+        width: 100%;
+        border: 0;
+        resize: none;
+        background: transparent;
+        color: transparent;
+        caret-color: var(--editor-code);
+        padding: 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        outline: none;
+        z-index: 2;
+        overflow: auto;
+        white-space: pre;
+      }
+
+      #dbml-editor:focus {
+        box-shadow: inset 0 0 0 1px var(--accent);
+      }
+
+      #dbml-editor::selection {
+        background: rgba(59, 130, 246, 0.35);
+      }
+
+      #editor-pane {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--editor-bg);
+      }
+
+      #line-numbers {
+        width: 40px;
+        flex: 0 0 40px;
+        border-right: 1px solid var(--editor-gutter-border);
+        color: var(--editor-gutter);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        padding: 12px 6px 12px 0;
+        text-align: right;
+        overflow: hidden;
+        user-select: none;
+      }
+
+      #line-numbers span {
+        display: block;
+      }
+
+      #editor-code-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      #dbml-highlight {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 12px;
+        overflow: auto;
+        pointer-events: none;
+        white-space: pre;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        color: var(--editor-code);
+        z-index: 1;
+      }
+
+      .tok-comment {
+        color: #6b7385;
+      }
+
+      .tok-keyword {
+        color: #93c5fd;
+      }
+
+      .tok-attr {
+        color: #a7f3d0;
+      }
+
+      .tok-type {
+        color: #c4b5fd;
+      }
+
+      .tok-arrow {
+        color: #60a5fa;
+      }
+
+      #editor-status {
+        padding: 8px 10px;
+        font-size: 10px;
+        color: var(--muted);
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+      }
+
+      #editor-status.error {
+        color: #fca5a5;
+      }
+
+      #editor-sidebar.collapsed #editor-head {
+        padding: 10px 6px;
+        border-bottom: 0;
+      }
+
+      #editor-sidebar.collapsed #editor-head h3,
+      #editor-sidebar.collapsed #editor-head p,
+      #editor-sidebar.collapsed #editor-pane,
+      #editor-sidebar.collapsed #editor-status {
+        display: none;
       }
 
       #table-sidebar {
@@ -243,8 +512,12 @@
         background: var(--surface);
         display: flex;
         flex-direction: column;
-        height: 100%;
         overflow: hidden;
+        transition: width 0.2s ease;
+      }
+
+      #table-sidebar.collapsed {
+        width: 36px;
       }
 
       #sidebar-head {
@@ -279,16 +552,25 @@
         box-shadow: 0 0 0 2px var(--accent-glow);
       }
 
+      #table-sidebar.collapsed #sidebar-head {
+        padding: 10px 6px;
+        border-bottom: 0;
+      }
+
+      #table-sidebar.collapsed #sidebar-head h3,
+      #table-sidebar.collapsed #sidebar-search,
+      #table-sidebar.collapsed #table-list {
+        display: none;
+      }
+
       #table-list {
         padding: 8px;
-        overflow-y: auto;
+        overflow: auto;
         flex: 1;
         display: flex;
         flex-direction: column;
         gap: 4px;
         min-height: 0;
-        flex: 1;
-        max-height: calc(100vh - 214px);
       }
 
       .table-item {
@@ -366,7 +648,11 @@
         content: "";
         position: absolute;
         inset: 0;
-        background-image: radial-gradient(circle, #2a2f3e 1px, transparent 1px);
+        background-image: radial-gradient(
+          circle,
+          var(--canvas-dot) 1px,
+          transparent 1px
+        );
         background-size: 28px 28px;
         pointer-events: none;
         z-index: 0;
@@ -462,8 +748,23 @@
       }
 
       @media (max-width: 900px) {
+        #editor-sidebar {
+          width: 280px;
+        }
+
         #table-sidebar {
           width: 170px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        #table-sidebar {
+          display: none;
+        }
+
+        #editor-sidebar {
+          width: 46vw;
+          min-width: 180px;
         }
       }
     </style>
@@ -486,6 +787,8 @@
       </svg>
       <h1>DBML Viewer</h1>
       <span>schema visualizer</span>
+      <div class="header-spacer"></div>
+      <button id="theme-toggle" type="button">Light</button>
     </header>
 
     <div id="upload-section">
@@ -504,9 +807,9 @@
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
-        <h2>Drop your .dbml file here</h2>
-        <p>or click to browse &nbsp;·&nbsp; .dbml / .txt accepted</p>
-        <input id="fi" type="file" accept=".dbml,.txt" />
+        <h2>Drop your .dbml or schema.prisma here</h2>
+        <p>or click to browse &nbsp;·&nbsp; .dbml / .prisma / .txt accepted</p>
+        <input id="fi" type="file" accept=".dbml,.prisma,.txt" />
       </div>
 
       <p
@@ -524,6 +827,7 @@
           >Load demo schema</a
         >
       </p>
+      <button id="write-btn" type="button">Write DBML manually</button>
     </div>
 
     <div id="canvas-section">
@@ -556,9 +860,45 @@
       </div>
       <div id="arrow-tooltip"></div>
       <div id="canvas-body">
+        <aside id="editor-sidebar">
+          <div id="editor-head">
+            <div class="sidebar-head-row">
+              <h3>DBML Editor</h3>
+              <button
+                id="editor-toggle"
+                class="collapse-btn"
+                type="button"
+                aria-label="Collapse editor sidebar"
+                title="Toggle editor"
+              >
+                <
+              </button>
+            </div>
+            <p>Type DBML here · preview auto updates</p>
+          </div>
+          <div id="editor-pane">
+            <div id="line-numbers"></div>
+            <div id="editor-code-wrap">
+              <pre id="dbml-highlight" aria-hidden="true"></pre>
+              <textarea id="dbml-editor" spellcheck="false"></textarea>
+            </div>
+          </div>
+          <div id="editor-status">Upload or write DBML to start preview.</div>
+        </aside>
         <aside id="table-sidebar">
           <div id="sidebar-head">
-            <h3>Tables</h3>
+            <div class="sidebar-head-row" style="margin-bottom: 8px">
+              <h3 style="margin-bottom: 0">Tables</h3>
+              <button
+                id="table-toggle"
+                class="collapse-btn"
+                type="button"
+                aria-label="Collapse tables sidebar"
+                title="Toggle tables"
+              >
+                <
+              </button>
+            </div>
             <input
               id="sidebar-search"
               type="text"
@@ -591,10 +931,19 @@
         baseSvgW = 0,
         baseSvgH = 0,
         suppressCanvasClick = false;
+      let editorDebounceTimer = null;
+      let editorCollapsed = false;
+      let tableCollapsed = false;
+      let currentTheme = "dark";
+
+      const EMPTY_DBML = `Table users {
+  id int [pk]
+  name varchar
+}`;
 
       function parseDSQL(src) {
-        tables = {};
-        refs = [];
+        const parsedTables = {};
+        const parsedRefs = [];
         const tRe = /table\s+["']?(\w+)["']?\s*\{([^}]+)\}/gi;
         const rRe = /ref\s*:\s*([\w."']+)\s*([<>-]+)\s*([\w."']+)/gi;
         let m;
@@ -622,7 +971,7 @@
               fields.push({ name: p[1], type: p[2].trim(), isPK, isFK });
             }
           });
-          tables[name] = { name, fields };
+          parsedTables[name] = { name, fields };
         }
         while ((m = rRe.exec(src)) !== null) {
           const parseCol = (s) => {
@@ -632,13 +981,257 @@
           };
           const a = parseCol(m[1]),
             b = parseCol(m[3]);
-          refs.push({
+          parsedRefs.push({
             from: a.table,
             fromField: a.field,
             to: b.table,
             toField: b.field,
           });
         }
+        return { tables: parsedTables, refs: parsedRefs };
+      }
+
+      function parsePrismaSchema(src) {
+        const parsedTables = {};
+        const parsedRefs = [];
+        const relationDefs = [];
+        const modelRe = /model\s+(\w+)\s*\{([\s\S]*?)\}/g;
+        let m;
+
+        while ((m = modelRe.exec(src)) !== null) {
+          const modelName = m[1];
+          const body = m[2];
+          const fields = [];
+
+          body.split("\n").forEach((rawLine) => {
+            let line = rawLine.trim();
+            if (!line || line.startsWith("//") || line.startsWith("@@")) return;
+
+            // Remove inline comments
+            line = line.replace(/\/\/.*$/, "").trim();
+            if (!line) return;
+
+            const p = line.match(/^(\w+)\s+([^\s]+)(?:\s+(.+))?$/);
+            if (!p) return;
+
+            const fName = p[1];
+            const rawType = p[2];
+            const extras = p[3] || "";
+            const normalizedType = rawType.replace(/[\[\]?]/g, "");
+            const isPK = /@id\b/.test(extras);
+            const isFK = /@relation\b/.test(extras);
+
+            fields.push({
+              name: fName,
+              type: normalizedType,
+              isPK,
+              isFK,
+            });
+
+            // Parse relation metadata from Prisma @relation annotation.
+            const rel = extras.match(/@relation\s*\(([^)]*)\)/);
+            if (!rel) return;
+
+            const relBody = rel[1];
+            const fieldsMatch = relBody.match(/fields\s*:\s*\[([^\]]+)\]/);
+            const refsMatch = relBody.match(/references\s*:\s*\[([^\]]+)\]/);
+            const fromFields = fieldsMatch
+              ? fieldsMatch[1]
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+            const toFields = refsMatch
+              ? refsMatch[1]
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
+
+            // Relation target is the field type if it references another model.
+            relationDefs.push({
+              fromTable: modelName,
+              toTable: normalizedType,
+              fromFields,
+              toFields,
+            });
+          });
+
+          parsedTables[modelName] = { name: modelName, fields };
+        }
+
+        const modelNames = new Set(Object.keys(parsedTables));
+        const seen = new Set();
+
+        relationDefs.forEach((r) => {
+          if (!modelNames.has(r.toTable)) return;
+          if (!r.fromFields.length) return;
+
+          const total = Math.max(r.fromFields.length, r.toFields.length, 1);
+          for (let i = 0; i < total; i++) {
+            const fromField = r.fromFields[i] || r.fromFields[0] || "id";
+            const toField = r.toFields[i] || r.toFields[0] || "id";
+            const key = `${r.fromTable}.${fromField}>${r.toTable}.${toField}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            parsedRefs.push({
+              from: r.fromTable,
+              fromField,
+              to: r.toTable,
+              toField,
+            });
+          }
+        });
+
+        return { tables: parsedTables, refs: parsedRefs };
+      }
+
+      function parseAnySchema(src, fileName = "") {
+        const lowerName = (fileName || "").toLowerCase();
+        const dbmlFirst = !lowerName.endsWith(".prisma");
+
+        if (dbmlFirst) {
+          const dbml = parseDSQL(src);
+          if (Object.keys(dbml.tables).length > 0) {
+            return { ...dbml, format: "dbml" };
+          }
+          const prisma = parsePrismaSchema(src);
+          return { ...prisma, format: "prisma" };
+        }
+
+        const prisma = parsePrismaSchema(src);
+        if (Object.keys(prisma.tables).length > 0) {
+          return { ...prisma, format: "prisma" };
+        }
+        const dbml = parseDSQL(src);
+        return { ...dbml, format: "dbml" };
+      }
+
+      function setEditorStatus(msg, isError = false) {
+        const el = document.getElementById("editor-status");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.toggle("error", isError);
+      }
+
+      function cssVar(name) {
+        return getComputedStyle(document.documentElement)
+          .getPropertyValue(name)
+          .trim();
+      }
+
+      function setTheme(theme) {
+        const root = document.documentElement;
+        const toggle = document.getElementById("theme-toggle");
+        currentTheme = theme === "light" ? "light" : "dark";
+
+        if (currentTheme === "light") {
+          root.setAttribute("data-theme", "light");
+        } else {
+          root.removeAttribute("data-theme");
+        }
+
+        if (toggle) {
+          toggle.textContent = currentTheme === "light" ? "Dark" : "Light";
+          toggle.setAttribute(
+            "aria-label",
+            currentTheme === "light"
+              ? "Switch to dark mode"
+              : "Switch to light mode",
+          );
+        }
+
+        localStorage.setItem("dbml-viewer-theme", currentTheme);
+        updateEditorDecorations();
+        if (Object.keys(tables).length > 0) render();
+      }
+
+      function escapeHtml(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function highlightDBML(source) {
+        const tokenRe =
+          /(\/\/.*$)|(\b(?:Table|table|Ref|ref|model|enum|datasource|generator)\b)|(\[[^\]]*\]|@[a-zA-Z_]\w*)|(<>|<|>|-)|(\b(?:int|integer|bigint|smallint|tinyint|varchar|char|text|boolean|bool|date|datetime|timestamp|json|uuid|float|double|decimal|string|bytes)\b)/gi;
+
+        return source
+          .split("\n")
+          .map((line) => {
+            const escaped = escapeHtml(line);
+            return escaped.replace(
+              tokenRe,
+              (m, comment, keyword, attr, arrow, type) => {
+                if (comment)
+                  return '<span class="tok-comment">' + comment + "</span>";
+                if (keyword)
+                  return '<span class="tok-keyword">' + keyword + "</span>";
+                if (attr) return '<span class="tok-attr">' + attr + "</span>";
+                if (arrow)
+                  return '<span class="tok-arrow">' + arrow + "</span>";
+                if (type) return '<span class="tok-type">' + type + "</span>";
+                return m;
+              },
+            );
+          })
+          .join("\n");
+      }
+
+      function syncEditorScroll() {
+        const editor = document.getElementById("dbml-editor");
+        const highlight = document.getElementById("dbml-highlight");
+        const lines = document.getElementById("line-numbers");
+        if (!editor || !highlight || !lines) return;
+        highlight.scrollTop = editor.scrollTop;
+        highlight.scrollLeft = editor.scrollLeft;
+        lines.scrollTop = editor.scrollTop;
+      }
+
+      function updateEditorDecorations() {
+        const editor = document.getElementById("dbml-editor");
+        const highlight = document.getElementById("dbml-highlight");
+        const lines = document.getElementById("line-numbers");
+        if (!editor || !highlight || !lines) return;
+
+        const src = editor.value || "";
+        highlight.innerHTML = highlightDBML(src) + "\n";
+
+        const count = Math.max(1, src.split("\n").length);
+        let out = "";
+        for (let i = 1; i <= count; i++) {
+          out += "<span>" + i + "</span>";
+        }
+        lines.innerHTML = out;
+
+        syncEditorScroll();
+      }
+
+      function setEditorCollapsed(collapsed) {
+        const sidebar = document.getElementById("editor-sidebar");
+        const btn = document.getElementById("editor-toggle");
+        editorCollapsed = !!collapsed;
+        if (!sidebar || !btn) return;
+        sidebar.classList.toggle("collapsed", editorCollapsed);
+        btn.textContent = editorCollapsed ? ">" : "<";
+        btn.setAttribute(
+          "aria-label",
+          editorCollapsed ? "Expand editor sidebar" : "Collapse editor sidebar",
+        );
+      }
+
+      function setTableCollapsed(collapsed) {
+        const sidebar = document.getElementById("table-sidebar");
+        const btn = document.getElementById("table-toggle");
+        tableCollapsed = !!collapsed;
+        if (!sidebar || !btn) return;
+        sidebar.classList.toggle("collapsed", tableCollapsed);
+        btn.textContent = tableCollapsed ? ">" : "<";
+        btn.setAttribute(
+          "aria-label",
+          tableCollapsed ? "Expand tables sidebar" : "Collapse tables sidebar",
+        );
       }
 
       function layoutNames(nameList) {
@@ -708,10 +1301,10 @@
         const defs = ns("defs");
         defs.innerHTML = `
     <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="#3a3f52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 1L8 5L2 9" fill="none" stroke="${cssVar("--arrow-default")}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
     <marker id="ahb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 1L8 5L2 9" fill="none" stroke="${cssVar("--accent")}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   `;
         svg.appendChild(defs);
@@ -798,14 +1391,14 @@
           hbg.setAttribute("width", t.w);
           hbg.setAttribute("height", HDR_H);
           hbg.setAttribute("rx", "8");
-          hbg.setAttribute("fill", "#1e2230");
+          hbg.setAttribute("fill", cssVar("--table-header-fill"));
           g.appendChild(hbg);
           const hbg2 = ns("rect");
           hbg2.setAttribute("x", t.x);
           hbg2.setAttribute("y", t.y + HDR_H - 4);
           hbg2.setAttribute("width", t.w);
           hbg2.setAttribute("height", 4);
-          hbg2.setAttribute("fill", "#1e2230");
+          hbg2.setAttribute("fill", cssVar("--table-header-fill"));
           g.appendChild(hbg2);
 
           // Header text
@@ -815,7 +1408,7 @@
           ht.setAttribute("y", t.y + HDR_H / 2);
           ht.setAttribute("text-anchor", "middle");
           ht.setAttribute("dominant-baseline", "central");
-          ht.setAttribute("fill", "#e2e4ea");
+          ht.setAttribute("fill", cssVar("--table-header-text"));
           ht.setAttribute("font-size", "12");
           ht.setAttribute("font-weight", "600");
           ht.setAttribute("font-family", "Syne,sans-serif");
@@ -842,7 +1435,7 @@
           div.setAttribute("y1", t.y + HDR_H);
           div.setAttribute("x2", t.x + t.w);
           div.setAttribute("y2", t.y + HDR_H);
-          div.setAttribute("stroke", "#252933");
+          div.setAttribute("stroke", cssVar("--table-header-rule"));
           div.setAttribute("stroke-width", "1");
           g.appendChild(div);
 
@@ -876,7 +1469,10 @@
             fn2.setAttribute("dominant-baseline", "central");
             fn2.setAttribute("font-size", "11");
             fn2.setAttribute("font-family", "JetBrains Mono,monospace");
-            fn2.setAttribute("fill", f.isPK ? "#f0c060" : "#c8cad4");
+            fn2.setAttribute(
+              "fill",
+              f.isPK ? cssVar("--field-name-pk") : cssVar("--field-name"),
+            );
             fn2.setAttribute("clip-path", "url(#clip-" + n + ")");
             // Measure and truncate with ellipsis
             const maxChars = Math.floor((t.w - (f.isPK ? 20 : 10) - 72) / 7);
@@ -900,7 +1496,7 @@
             ft2.setAttribute("text-anchor", "end");
             ft2.setAttribute("font-size", "10");
             ft2.setAttribute("font-family", "JetBrains Mono,monospace");
-            ft2.setAttribute("fill", "#4a5068");
+            ft2.setAttribute("fill", cssVar("--field-type"));
             ft2.textContent = f.type;
             fr.appendChild(ft2);
 
@@ -913,7 +1509,7 @@
               rd.setAttribute("y1", fy2 + FIELD_H);
               rd.setAttribute("x2", t.x + t.w - 6);
               rd.setAttribute("y2", fy2 + FIELD_H);
-              rd.setAttribute("stroke", "#1e2230");
+              rd.setAttribute("stroke", cssVar("--row-divider"));
               rd.setAttribute("stroke-width", "1");
               g.appendChild(rd);
             }
@@ -1300,16 +1896,55 @@
         if (wrap) wrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
       }
 
-      function loadSrc(src) {
-        parseDSQL(src);
-        if (Object.keys(tables).length === 0) {
-          alert("No tables found. Check DBML syntax.");
-          return;
+      function loadSrc(src, opts = {}) {
+        const {
+          silent = false,
+          updateEditor = true,
+          viewMode = "keep",
+          fileName = "",
+        } = opts;
+        const parsed = parseAnySchema(src, fileName);
+        if (Object.keys(parsed.tables).length === 0) {
+          if (!silent)
+            alert(
+              "No models/tables found. Check DBML or Prisma schema syntax.",
+            );
+          setEditorStatus(
+            "Schema incomplete or invalid. Preview kept on last valid schema.",
+            true,
+          );
+          return false;
         }
+
+        tables = parsed.tables;
+        refs = parsed.refs;
+        selectedArrow = null;
+        activeTableFilter = null;
+        activeSearch = "";
+
         layout();
         render();
         document.getElementById("upload-section").style.display = "none";
         document.getElementById("canvas-section").style.display = "flex";
+
+        if (viewMode === "upload") {
+          setEditorCollapsed(true);
+          setTableCollapsed(false);
+        } else if (viewMode === "manual") {
+          setEditorCollapsed(false);
+          setTableCollapsed(true);
+        }
+
+        if (updateEditor) {
+          const editor = document.getElementById("dbml-editor");
+          if (editor && editor.value !== src) editor.value = src;
+          updateEditorDecorations();
+        }
+
+        setEditorStatus(
+          `${parsed.format.toUpperCase()} preview ready. ${Object.keys(tables).length} table(s) rendered.`,
+        );
+        return true;
       }
 
       // File input
@@ -1317,7 +1952,8 @@
         const f = e.target.files[0];
         if (!f) return;
         const r = new FileReader();
-        r.onload = (ev) => loadSrc(ev.target.result);
+        r.onload = (ev) =>
+          loadSrc(ev.target.result, { viewMode: "upload", fileName: f.name });
         r.readAsText(f);
       });
 
@@ -1334,7 +1970,8 @@
         const f = e.dataTransfer.files[0];
         if (!f) return;
         const r = new FileReader();
-        r.onload = (ev) => loadSrc(ev.target.result);
+        r.onload = (ev) =>
+          loadSrc(ev.target.result, { viewMode: "upload", fileName: f.name });
         r.readAsText(f);
       });
 
@@ -1347,6 +1984,59 @@
         if (searchInput) searchInput.value = "";
         zoomLevel = 1;
         resetHL();
+        setEditorStatus("Upload or write DBML to start preview.");
+      });
+
+      document.getElementById("write-btn").addEventListener("click", () => {
+        loadSrc(EMPTY_DBML, { viewMode: "manual" });
+        const editor = document.getElementById("dbml-editor");
+        if (editor) {
+          editor.focus();
+          editor.setSelectionRange(editor.value.length, editor.value.length);
+        }
+      });
+
+      document.getElementById("editor-toggle").addEventListener("click", () => {
+        setEditorCollapsed(!editorCollapsed);
+      });
+
+      document.getElementById("table-toggle").addEventListener("click", () => {
+        setTableCollapsed(!tableCollapsed);
+      });
+
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        setTheme(currentTheme === "dark" ? "light" : "dark");
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (!e.ctrlKey || e.altKey || e.metaKey) return;
+        const canvasVisible =
+          document.getElementById("canvas-section").style.display === "flex";
+        if (!canvasVisible) return;
+
+        const k = (e.key || "").toLowerCase();
+        if (k === "b") {
+          e.preventDefault();
+          setTableCollapsed(!tableCollapsed);
+        } else if (k === "e") {
+          e.preventDefault();
+          setEditorCollapsed(!editorCollapsed);
+        }
+      });
+
+      document.getElementById("dbml-editor").addEventListener("input", (e) => {
+        const src = e.target.value;
+        updateEditorDecorations();
+        clearTimeout(editorDebounceTimer);
+        setEditorStatus("Typing detected. Updating preview...");
+
+        editorDebounceTimer = setTimeout(() => {
+          loadSrc(src, { silent: true, updateEditor: false });
+        }, 280);
+      });
+
+      document.getElementById("dbml-editor").addEventListener("scroll", () => {
+        syncEditorScroll();
       });
 
       // Toolbar search
@@ -1475,6 +2165,10 @@ Ref: post_tags.tag_id > tags.id
 Ref: sessions.user_id > users.id
   `);
       });
+
+      const savedTheme = localStorage.getItem("dbml-viewer-theme");
+      setTheme(savedTheme || "dark");
+      updateEditorDecorations();
     </script>
   </body>
 </html>
