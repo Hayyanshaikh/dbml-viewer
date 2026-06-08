@@ -1,0 +1,1480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DBML Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0f14;
+        --surface: #13161e;
+        --surface2: #1a1e28;
+        --border: #252933;
+        --border2: #2e3442;
+        --text: #e2e4ea;
+        --muted: #6b7385;
+        --accent: #3b82f6;
+        --accent-glow: rgba(59, 130, 246, 0.18);
+        --arrow-default: #3a3f52;
+        --arrow-hover: #5a6175;
+        --tbl-header: #1e2230;
+        --tbl-hl-header: #1e3a5f;
+        --tbl-hl-border: #3b82f6;
+        --dimmed: 0.1;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--surface);
+      }
+
+      header h1 {
+        font-family: "Syne", sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--text);
+      }
+
+      header span {
+        font-size: 11px;
+        color: var(--muted);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+
+      #drop-zone {
+        border: 1.5px dashed var(--border2);
+        border-radius: 10px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin: 2rem auto;
+        max-width: 480px;
+      }
+
+      #drop-zone:hover,
+      #drop-zone.over {
+        border-color: var(--accent);
+        background: var(--accent-glow);
+      }
+
+      #drop-zone svg {
+        margin-bottom: 0.75rem;
+        opacity: 0.5;
+      }
+
+      #drop-zone h2 {
+        font-family: "Syne", sans-serif;
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+        color: var(--text);
+      }
+
+      #drop-zone p {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      #drop-zone input {
+        display: none;
+      }
+
+      #upload-section {
+        padding: 1rem 2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #canvas-section {
+        display: none;
+        flex: 1;
+        overflow: hidden;
+        flex-direction: column;
+      }
+
+      #toolbar {
+        padding: 0.6rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--surface);
+        font-size: 11px;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+
+      #toolbar .spacer {
+        flex: 1;
+      }
+
+      #toolbar span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .dot-gray {
+        background: var(--arrow-default);
+      }
+      .dot-blue {
+        background: var(--accent);
+      }
+
+      #search-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #table-search {
+        width: 180px;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 5px 8px;
+        border-radius: 4px;
+        outline: none;
+      }
+
+      #table-search:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px var(--accent-glow);
+      }
+
+      .ctl-btn {
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .ctl-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #zoom-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #zoom-level {
+        min-width: 46px;
+        text-align: center;
+        color: var(--text);
+      }
+
+      #hint-text {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      #new-btn {
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      #new-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #canvas-body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+      }
+
+      #table-sidebar {
+        width: 230px;
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #sidebar-head {
+        padding: 10px 10px 8px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      #sidebar-head h3 {
+        font-size: 11px;
+        font-family: "Syne", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+
+      #sidebar-search {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 5px 8px;
+        border-radius: 4px;
+        outline: none;
+      }
+
+      #sidebar-search:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px var(--accent-glow);
+      }
+
+      #table-list {
+        padding: 8px;
+        overflow-y: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 0;
+        flex: 1;
+        max-height: calc(100vh - 214px);
+      }
+
+      .table-item {
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 6px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+        /* ellipsis */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        flex: 0 0 auto;
+      }
+
+      .table-item:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+
+      .table-item.active {
+        border-color: var(--accent);
+        color: #93c5fd;
+        background: var(--accent-glow);
+      }
+
+      /* Minimal dark scrollbars — all scrollable areas */
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #2e3442;
+        border-radius: 99px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3b82f6;
+      }
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #2e3442 transparent;
+      }
+
+      #canvas-wrap {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+        cursor: grab;
+        background:
+          radial-gradient(
+            circle at 20% 20%,
+            rgba(59, 130, 246, 0.03) 0%,
+            transparent 60%
+          ),
+          var(--bg);
+      }
+
+      #canvas-wrap.panning,
+      #canvas-wrap.panning * {
+        cursor: grabbing !important;
+      }
+
+      /* dot grid */
+      #canvas-wrap::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, #2a2f3e 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      svg#dbml-svg {
+        display: block;
+        position: relative;
+        z-index: 1;
+      }
+
+      .tbl-group rect.tbl-bg {
+        fill: var(--surface);
+        stroke: var(--border2);
+        stroke-width: 1;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+      }
+
+      .tbl-group.highlighted rect.tbl-bg {
+        stroke: var(--tbl-hl-border);
+        stroke-width: 1.5;
+        filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.25));
+      }
+
+      .tbl-group.dimmed {
+        opacity: var(--dimmed);
+        transition: opacity 0.25s;
+      }
+      .tbl-group {
+        transition: opacity 0.25s;
+      }
+
+      .arrow-line {
+        stroke: var(--arrow-default);
+        stroke-width: 1.5;
+        fill: none;
+        cursor: pointer;
+        transition:
+          stroke 0.2s,
+          stroke-width 0.2s,
+          opacity 0.25s;
+      }
+      .arrow-line:hover {
+        stroke: var(--arrow-hover);
+        stroke-width: 2;
+      }
+      .arrow-line.highlighted {
+        stroke: var(--accent);
+        stroke-width: 2.5;
+      }
+      .arrow-line.dimmed {
+        opacity: var(--dimmed);
+      }
+
+      .fk-dot {
+        transition: opacity 0.25s;
+      }
+      .fk-dot.dimmed {
+        opacity: var(--dimmed);
+      }
+      .fk-dot.highlighted {
+        opacity: 1;
+      }
+
+      #arrow-tooltip {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-size: 11px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text);
+        white-space: nowrap;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      #arrow-tooltip.visible {
+        opacity: 1;
+      }
+      #arrow-tooltip .tt-from {
+        color: #93c5fd;
+      }
+      #arrow-tooltip .tt-arrow {
+        color: var(--muted);
+        margin: 0 5px;
+      }
+      #arrow-tooltip .tt-to {
+        color: #bfdbfe;
+      }
+
+      @media (max-width: 900px) {
+        #table-sidebar {
+          width: 170px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#3b82f6"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <ellipse cx="12" cy="5" rx="9" ry="3" />
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      </svg>
+      <h1>DBML Viewer</h1>
+      <span>schema visualizer</span>
+    </header>
+
+    <div id="upload-section">
+      <div id="drop-zone" onclick="document.getElementById('fi').click()">
+        <svg
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        <h2>Drop your .dbml file here</h2>
+        <p>or click to browse &nbsp;·&nbsp; .dbml / .txt accepted</p>
+        <input id="fi" type="file" accept=".dbml,.txt" />
+      </div>
+
+      <p
+        style="
+          font-size: 11px;
+          color: var(--muted);
+          margin-top: 1rem;
+          text-align: center;
+        "
+      >
+        No file? &nbsp;<a
+          href="#"
+          id="demo-link"
+          style="color: var(--accent); text-decoration: none"
+          >Load demo schema</a
+        >
+      </p>
+    </div>
+
+    <div id="canvas-section">
+      <div id="toolbar">
+        <span><span class="dot dot-gray"></span>default arrow</span>
+        <span
+          ><span class="dot dot-blue"></span>selected arrow + connected
+          tables</span
+        >
+        <div id="search-wrap">
+          <input
+            id="table-search"
+            type="text"
+            placeholder="Search table..."
+            autocomplete="off"
+          />
+          <button id="clear-search" class="ctl-btn">Clear</button>
+        </div>
+        <div id="zoom-wrap">
+          <button id="zoom-out" class="ctl-btn">-</button>
+          <span id="zoom-level">100%</span>
+          <button id="zoom-in" class="ctl-btn">+</button>
+          <button id="zoom-reset" class="ctl-btn">Reset</button>
+        </div>
+        <div class="spacer"></div>
+        <span id="hint-text"
+          >Click arrow/table search · click canvas to reset</span
+        >
+        <button id="new-btn">↑ New file</button>
+      </div>
+      <div id="arrow-tooltip"></div>
+      <div id="canvas-body">
+        <aside id="table-sidebar">
+          <div id="sidebar-head">
+            <h3>Tables</h3>
+            <input
+              id="sidebar-search"
+              type="text"
+              placeholder="Filter tables..."
+              autocomplete="off"
+            />
+          </div>
+          <div id="table-list"></div>
+        </aside>
+        <div id="canvas-wrap">
+          <svg id="dbml-svg"></svg>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const FIELD_H = 24,
+        HDR_H = 32,
+        PAD = 10,
+        COL_W = 200,
+        GAP_X = 90,
+        ROW_GAP = 24,
+        MARGIN = 40;
+      let tables = {},
+        refs = [],
+        selectedArrow = null,
+        activeTableFilter = null,
+        zoomLevel = 1,
+        activeSearch = "",
+        baseSvgW = 0,
+        baseSvgH = 0,
+        suppressCanvasClick = false;
+
+      function parseDSQL(src) {
+        tables = {};
+        refs = [];
+        const tRe = /table\s+["']?(\w+)["']?\s*\{([^}]+)\}/gi;
+        const rRe = /ref\s*:\s*([\w."']+)\s*([<>-]+)\s*([\w."']+)/gi;
+        let m;
+        while ((m = tRe.exec(src)) !== null) {
+          const name = m[1],
+            body = m[2];
+          const fields = [];
+          body.split("\n").forEach((l) => {
+            l = l.trim();
+            if (
+              !l ||
+              l.startsWith("//") ||
+              l.startsWith("indexes") ||
+              l.startsWith("note")
+            )
+              return;
+            const p = l.match(
+              /^(\w+)\s+([\w()[\],\s]+?)(?:\s+\[([^\]]*)\])?\s*$/,
+            );
+            if (p) {
+              const extra = p[3] || "";
+              const isPK =
+                extra.includes("pk") || extra.includes("primary key");
+              const isFK = extra.includes("ref:");
+              fields.push({ name: p[1], type: p[2].trim(), isPK, isFK });
+            }
+          });
+          tables[name] = { name, fields };
+        }
+        while ((m = rRe.exec(src)) !== null) {
+          const parseCol = (s) => {
+            s = s.replace(/["']/g, "");
+            const p = s.split(".");
+            return { table: p[0], field: p[1] || "id" };
+          };
+          const a = parseCol(m[1]),
+            b = parseCol(m[3]);
+          refs.push({
+            from: a.table,
+            fromField: a.field,
+            to: b.table,
+            toField: b.field,
+          });
+        }
+      }
+
+      function layoutNames(nameList) {
+        const cols = Math.max(1, Math.ceil(Math.sqrt(nameList.length * 1.3)));
+        const rowHeights = [];
+        nameList.forEach((n, i) => {
+          const t = tables[n];
+          const row = Math.floor(i / cols);
+          const h = HDR_H + PAD * 2 + t.fields.length * FIELD_H;
+          rowHeights[row] = Math.max(rowHeights[row] || 0, h);
+          t.w = COL_W;
+          t.h = h;
+        });
+        const rowOffsets = [];
+        let yCursor = MARGIN;
+        rowHeights.forEach((h, row) => {
+          rowOffsets[row] = yCursor;
+          yCursor += h + ROW_GAP;
+        });
+        nameList.forEach((n, i) => {
+          const t = tables[n];
+          const col = i % cols,
+            row = Math.floor(i / cols);
+          t.x = MARGIN + col * (COL_W + GAP_X);
+          t.y = rowOffsets[row];
+        });
+      }
+
+      function layout() {
+        const names = Object.keys(tables);
+        layoutNames(names);
+        // Save original positions for reset
+        names.forEach((n) => {
+          const t = tables[n];
+          t.ox = t.x;
+          t.oy = t.y;
+        });
+      }
+
+      function fieldMidY(tName, fieldName) {
+        const t = tables[tName];
+        if (!t) return 0;
+        const idx = t.fields.findIndex((f) => f.name === fieldName);
+        return t.y + HDR_H + PAD + (idx < 0 ? 0 : idx) * FIELD_H + FIELD_H / 2;
+      }
+
+      function ns(tag) {
+        return document.createElementNS("http://www.w3.org/2000/svg", tag);
+      }
+
+      function render() {
+        const svg = document.getElementById("dbml-svg");
+        const names = Object.keys(tables);
+        let maxX = 0,
+          maxY = 0;
+        names.forEach((n) => {
+          const t = tables[n];
+          maxX = Math.max(maxX, t.x + t.w + MARGIN);
+          maxY = Math.max(maxY, t.y + t.h + MARGIN);
+        });
+        baseSvgW = maxX;
+        baseSvgH = maxY;
+        svg.setAttribute("viewBox", `0 0 ${baseSvgW} ${baseSvgH}`);
+        svg.innerHTML = "";
+
+        // Defs
+        const defs = ns("defs");
+        defs.innerHTML = `
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#3a3f52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ahb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  `;
+        svg.appendChild(defs);
+
+        // Arrows
+        const arrowG = ns("g");
+        arrowG.id = "arrows-layer";
+        refs.forEach((r, i) => {
+          const ft = tables[r.from],
+            tt = tables[r.to];
+          if (!ft || !tt) return;
+          const fy = fieldMidY(r.from, r.fromField);
+          const ty = fieldMidY(r.to, r.toField);
+
+          // Smart routing: right to left or left depending on position
+          let x1, x2, ctrl1x, ctrl2x;
+          if (ft.x + ft.w < tt.x) {
+            x1 = ft.x + ft.w;
+            x2 = tt.x;
+          } else if (tt.x + tt.w < ft.x) {
+            x1 = ft.x;
+            x2 = tt.x + tt.w;
+          } else {
+            x1 = ft.x + ft.w;
+            x2 = tt.x;
+          }
+          const mx = (x1 + x2) / 2;
+          ctrl1x = mx;
+          ctrl2x = mx;
+
+          const path = ns("path");
+          path.setAttribute(
+            "d",
+            `M${x1},${fy} C${ctrl1x},${fy} ${ctrl2x},${ty} ${x2},${ty}`,
+          );
+          path.setAttribute("class", "arrow-line");
+          path.setAttribute("marker-end", "url(#ah)");
+          path.dataset.idx = i;
+          path.dataset.from = r.from;
+          path.dataset.to = r.to;
+          path.addEventListener("click", (e) => {
+            e.stopPropagation();
+            onArrowClick(i);
+          });
+          path.addEventListener("mousemove", (e) =>
+            showArrowTooltip(e, r.from, r.to),
+          );
+          path.addEventListener("mouseleave", hideArrowTooltip);
+          arrowG.appendChild(path);
+
+          // FK origin dot
+          const dot = ns("circle");
+          dot.setAttribute("cx", x1);
+          dot.setAttribute("cy", fy);
+          dot.setAttribute("r", "3");
+          dot.setAttribute("fill", "#3a3f52");
+          dot.setAttribute("class", "fk-dot");
+          dot.dataset.idx = i;
+          arrowG.appendChild(dot);
+        });
+        svg.appendChild(arrowG);
+
+        // Tables
+        names.forEach((n) => {
+          const t = tables[n];
+          const g = ns("g");
+          g.setAttribute("class", "tbl-group");
+          g.dataset.name = n;
+
+          // Shadow bg
+          const bg = ns("rect");
+          bg.setAttribute("class", "tbl-bg");
+          bg.setAttribute("x", t.x);
+          bg.setAttribute("y", t.y);
+          bg.setAttribute("width", t.w);
+          bg.setAttribute("height", t.h);
+          bg.setAttribute("rx", "8");
+          g.appendChild(bg);
+
+          // Header bg
+          const hbg = ns("rect");
+          hbg.setAttribute("x", t.x);
+          hbg.setAttribute("y", t.y);
+          hbg.setAttribute("width", t.w);
+          hbg.setAttribute("height", HDR_H);
+          hbg.setAttribute("rx", "8");
+          hbg.setAttribute("fill", "#1e2230");
+          g.appendChild(hbg);
+          const hbg2 = ns("rect");
+          hbg2.setAttribute("x", t.x);
+          hbg2.setAttribute("y", t.y + HDR_H - 4);
+          hbg2.setAttribute("width", t.w);
+          hbg2.setAttribute("height", 4);
+          hbg2.setAttribute("fill", "#1e2230");
+          g.appendChild(hbg2);
+
+          // Header text
+          const ht = ns("text");
+          ht.setAttribute("class", "ht");
+          ht.setAttribute("x", t.x + t.w / 2);
+          ht.setAttribute("y", t.y + HDR_H / 2);
+          ht.setAttribute("text-anchor", "middle");
+          ht.setAttribute("dominant-baseline", "central");
+          ht.setAttribute("fill", "#e2e4ea");
+          ht.setAttribute("font-size", "12");
+          ht.setAttribute("font-weight", "600");
+          ht.setAttribute("font-family", "Syne,sans-serif");
+          ht.textContent = n;
+          g.appendChild(ht);
+
+          // Clip path for field names
+          const clipId = "clip-" + n;
+          const clipPath = ns("clipPath");
+          clipPath.setAttribute("id", clipId);
+          const clipRect = ns("rect");
+          const nameStartX = t.x + 10; // will be adjusted per field
+          clipRect.setAttribute("x", String(t.x + 10));
+          clipRect.setAttribute("y", String(t.y + HDR_H));
+          // max width: leave room for type on right (~70px)
+          clipRect.setAttribute("width", String(t.w - 10 - 72));
+          clipRect.setAttribute("height", String(t.h));
+          clipPath.appendChild(clipRect);
+          svg.appendChild(clipPath);
+
+          // Divider
+          const div = ns("line");
+          div.setAttribute("x1", t.x);
+          div.setAttribute("y1", t.y + HDR_H);
+          div.setAttribute("x2", t.x + t.w);
+          div.setAttribute("y2", t.y + HDR_H);
+          div.setAttribute("stroke", "#252933");
+          div.setAttribute("stroke-width", "1");
+          g.appendChild(div);
+
+          // Fields
+          t.fields.forEach((f, fi) => {
+            const fy2 = t.y + HDR_H + PAD + fi * FIELD_H;
+            const fr = ns("g");
+            fr.setAttribute("class", "field-row");
+
+            const fbg = ns("rect");
+            fbg.setAttribute("x", t.x + 1);
+            fbg.setAttribute("y", fy2);
+            fbg.setAttribute("width", t.w - 2);
+            fbg.setAttribute("height", FIELD_H);
+            fbg.setAttribute("fill", "transparent");
+            fr.appendChild(fbg);
+
+            if (f.isPK) {
+              const pk = ns("circle");
+              pk.setAttribute("cx", t.x + 12);
+              pk.setAttribute("cy", fy2 + FIELD_H / 2);
+              pk.setAttribute("r", "2.5");
+              pk.setAttribute("fill", "#f59e0b");
+              fr.appendChild(pk);
+            }
+
+            const fn2 = ns("text");
+            const fnX = t.x + (f.isPK ? 20 : 10);
+            fn2.setAttribute("x", String(fnX));
+            fn2.setAttribute("y", String(fy2 + FIELD_H / 2));
+            fn2.setAttribute("dominant-baseline", "central");
+            fn2.setAttribute("font-size", "11");
+            fn2.setAttribute("font-family", "JetBrains Mono,monospace");
+            fn2.setAttribute("fill", f.isPK ? "#f0c060" : "#c8cad4");
+            fn2.setAttribute("clip-path", "url(#clip-" + n + ")");
+            // Measure and truncate with ellipsis
+            const maxChars = Math.floor((t.w - (f.isPK ? 20 : 10) - 72) / 7);
+            const displayName =
+              f.name.length > maxChars
+                ? f.name.slice(0, Math.max(1, maxChars - 1)) + "\u2026"
+                : f.name;
+            fn2.textContent = displayName;
+            // SVG title = native browser tooltip with full name
+            if (f.name.length > maxChars) {
+              const titleEl = ns("title");
+              titleEl.textContent = f.name;
+              fn2.appendChild(titleEl);
+            }
+            fr.appendChild(fn2);
+
+            const ft2 = ns("text");
+            ft2.setAttribute("x", t.x + t.w - 8);
+            ft2.setAttribute("y", fy2 + FIELD_H / 2);
+            ft2.setAttribute("dominant-baseline", "central");
+            ft2.setAttribute("text-anchor", "end");
+            ft2.setAttribute("font-size", "10");
+            ft2.setAttribute("font-family", "JetBrains Mono,monospace");
+            ft2.setAttribute("fill", "#4a5068");
+            ft2.textContent = f.type;
+            fr.appendChild(ft2);
+
+            g.appendChild(fr);
+
+            // Row divider (subtle)
+            if (fi < t.fields.length - 1) {
+              const rd = ns("line");
+              rd.setAttribute("x1", t.x + 6);
+              rd.setAttribute("y1", fy2 + FIELD_H);
+              rd.setAttribute("x2", t.x + t.w - 6);
+              rd.setAttribute("y2", fy2 + FIELD_H);
+              rd.setAttribute("stroke", "#1e2230");
+              rd.setAttribute("stroke-width", "1");
+              g.appendChild(rd);
+            }
+          });
+
+          svg.appendChild(g);
+        });
+
+        svg.onclick = () => {
+          if (suppressCanvasClick) {
+            suppressCanvasClick = false;
+            return;
+          }
+          resetHL();
+        };
+        document.getElementById("canvas-wrap").style.zIndex = 1;
+        applyZoom();
+        // Only rebuild sidebar list on fresh load, not during filter re-renders
+        if (!activeTableFilter) renderTableList();
+      }
+
+      function applyZoom() {
+        const svg = document.getElementById("dbml-svg");
+        const zoomLabel = document.getElementById("zoom-level");
+        if (!svg) return;
+        const scaledW = Math.max(1, baseSvgW * zoomLevel);
+        const scaledH = Math.max(1, baseSvgH * zoomLevel);
+        svg.setAttribute("width", String(scaledW));
+        svg.setAttribute("height", String(scaledH));
+        if (zoomLabel)
+          zoomLabel.textContent = `${Math.round(zoomLevel * 100)}%`;
+      }
+
+      function setZoom(nextZoom) {
+        const wrap = document.getElementById("canvas-wrap");
+        const prevZoom = zoomLevel;
+        const clamped = Math.max(0.5, Math.min(2.5, +nextZoom.toFixed(2)));
+        if (clamped === prevZoom) return;
+
+        const focusX = wrap.clientWidth / 2;
+        const focusY = wrap.clientHeight / 2;
+        const worldX = (wrap.scrollLeft + focusX) / prevZoom;
+        const worldY = (wrap.scrollTop + focusY) / prevZoom;
+
+        zoomLevel = clamped;
+        applyZoom();
+
+        const maxLeft = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+        const maxTop = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+        wrap.scrollLeft = Math.max(
+          0,
+          Math.min(maxLeft, worldX * zoomLevel - focusX),
+        );
+        wrap.scrollTop = Math.max(
+          0,
+          Math.min(maxTop, worldY * zoomLevel - focusY),
+        );
+      }
+
+      function focusTable(tableName, smooth = true) {
+        const wrap = document.getElementById("canvas-wrap");
+        const t = tables[tableName];
+        if (!wrap || !t) return;
+
+        const targetLeft =
+          t.x * zoomLevel - (wrap.clientWidth - t.w * zoomLevel) / 2;
+        const targetTop =
+          t.y * zoomLevel - (wrap.clientHeight - t.h * zoomLevel) / 2;
+        const maxLeft = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+        const maxTop = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+
+        wrap.scrollTo({
+          left: Math.max(0, Math.min(maxLeft, targetLeft)),
+          top: Math.max(0, Math.min(maxTop, targetTop)),
+          behavior: smooth ? "smooth" : "auto",
+        });
+      }
+
+      function updateTableListActive() {
+        document.querySelectorAll(".table-item").forEach((btn) => {
+          const n = btn.dataset.table || "";
+          btn.classList.toggle("active", n && n === activeTableFilter);
+        });
+      }
+
+      function renderTableList(filterText) {
+        const list = document.getElementById("table-list");
+        if (!list) return;
+        const q = (filterText || "").trim().toLowerCase();
+        const names = Object.keys(tables)
+          .sort((a, b) => a.localeCompare(b))
+          .filter((n) => !q || n.toLowerCase().includes(q));
+
+        list.innerHTML = "";
+        names.forEach((name) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "table-item";
+          btn.dataset.table = name;
+          btn.textContent = name;
+          btn.addEventListener("click", () => applyTableFilter(name));
+          list.appendChild(btn);
+        });
+
+        updateTableListActive();
+      }
+
+      function applyTableFilter(tableName) {
+        if (!tables[tableName]) return;
+
+        // Toggle off if same table clicked again
+        if (activeTableFilter === tableName) {
+          activeTableFilter = null;
+          updateTableListActive();
+          resetHL();
+          return;
+        }
+
+        activeTableFilter = tableName;
+        activeSearch = "";
+        selectedArrow = null;
+
+        const searchInput = document.getElementById("table-search");
+        if (searchInput) searchInput.value = "";
+
+        // Build related set: root first, then related sorted
+        const related = new Set([tableName]);
+        refs.forEach((r) => {
+          if (r.from === tableName || r.to === tableName) {
+            related.add(r.from);
+            related.add(r.to);
+          }
+        });
+        const relatedArr = [
+          tableName,
+          ...[...related].filter((n) => n !== tableName).sort(),
+        ];
+
+        // Re-layout only the related tables with fresh positions
+        layoutNames(relatedArr);
+
+        // Full re-render with new positions
+        render();
+
+        // After render: hide unrelated tables & arrows, highlight root
+        document.querySelectorAll(".tbl-group").forEach((el) => {
+          const n = el.dataset.name;
+          const rel = related.has(n);
+          const root = n === tableName;
+          el.style.display = rel ? "" : "none";
+          if (rel) {
+            const ht = el.querySelector(".ht");
+            if (ht) ht.setAttribute("fill", root ? "#93c5fd" : "#e2e4ea");
+            const bg = el.querySelector("rect.tbl-bg");
+            if (bg) {
+              bg.setAttribute("stroke", root ? "#3b82f6" : "#2e3442");
+              if (root)
+                bg.setAttribute(
+                  "filter",
+                  "drop-shadow(0 0 10px rgba(59,130,246,0.4))",
+                );
+            }
+          }
+        });
+
+        document.querySelectorAll(".arrow-line, .fk-dot").forEach((el) => {
+          const i = +el.dataset.idx;
+          const r = refs[i];
+          const rel = r && (r.from === tableName || r.to === tableName);
+          el.style.display = rel ? "" : "none";
+        });
+
+        updateTableListActive();
+
+        // Scroll canvas to top-left so fresh layout starts from beginning
+        const wrap = document.getElementById("canvas-wrap");
+        if (wrap) wrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+      }
+
+      const _tt = document.getElementById("arrow-tooltip");
+
+      function showArrowTooltip(e, from, to) {
+        _tt.innerHTML =
+          '<span class="tt-from">' +
+          from +
+          "</span>" +
+          '<span class="tt-arrow">→</span>' +
+          '<span class="tt-to">' +
+          to +
+          "</span>";
+        _tt.classList.add("visible");
+        const pad = 14;
+        const tw = _tt.offsetWidth || 120;
+        const th = _tt.offsetHeight || 28;
+        let x = e.clientX + pad;
+        let y = e.clientY - Math.round(th / 2);
+        if (x + tw > window.innerWidth - 8) x = e.clientX - tw - pad;
+        if (y < 8) y = 8;
+        if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+        _tt.style.left = x + "px";
+        _tt.style.top = y + "px";
+      }
+
+      function hideArrowTooltip() {
+        _tt.classList.remove("visible");
+      }
+
+      function resetArrowSelection() {
+        selectedArrow = null;
+        document.querySelectorAll(".arrow-line").forEach((el) => {
+          el.classList.remove("highlighted", "dimmed");
+          el.setAttribute("marker-end", "url(#ah)");
+        });
+        document.querySelectorAll(".fk-dot").forEach((el) => {
+          el.classList.remove("highlighted", "dimmed");
+          el.setAttribute("fill", "#3a3f52");
+        });
+      }
+
+      function applyTableSearch(query) {
+        const q = (query || "").trim();
+        activeSearch = q.toLowerCase();
+
+        if (!activeSearch) {
+          resetHL();
+          return;
+        }
+
+        // Check for exact match (case-insensitive)
+        const exactKey = Object.keys(tables).find(
+          (n) => n.toLowerCase() === activeSearch,
+        );
+
+        if (exactKey) {
+          // Exact match → behave exactly like sidebar filter
+          activeTableFilter = exactKey;
+          updateTableListActive();
+
+          const related = new Set([exactKey]);
+          refs.forEach((r) => {
+            if (r.from === exactKey || r.to === exactKey) {
+              related.add(r.from);
+              related.add(r.to);
+            }
+          });
+          const relatedArr = [
+            exactKey,
+            ...[...related].filter((n) => n !== exactKey).sort(),
+          ];
+
+          layoutNames(relatedArr);
+          render();
+
+          document.querySelectorAll(".tbl-group").forEach((el) => {
+            const n = el.dataset.name;
+            const rel = related.has(n);
+            const root = n === exactKey;
+            el.style.display = rel ? "" : "none";
+            if (rel) {
+              const ht = el.querySelector(".ht");
+              if (ht) ht.setAttribute("fill", root ? "#93c5fd" : "#e2e4ea");
+              const bg = el.querySelector("rect.tbl-bg");
+              if (bg) {
+                bg.setAttribute("stroke", root ? "#3b82f6" : "#2e3442");
+                if (root)
+                  bg.setAttribute(
+                    "filter",
+                    "drop-shadow(0 0 10px rgba(59,130,246,0.4))",
+                  );
+              }
+            }
+          });
+
+          document.querySelectorAll(".arrow-line, .fk-dot").forEach((el) => {
+            const i = +el.dataset.idx;
+            const r = refs[i];
+            const rel = r && (r.from === exactKey || r.to === exactKey);
+            el.style.display = rel ? "" : "none";
+          });
+
+          const wrap = document.getElementById("canvas-wrap");
+          if (wrap) wrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+          return;
+        }
+
+        // Partial match → highlight matching tables, dim rest
+        activeTableFilter = null;
+        updateTableListActive();
+        resetArrowSelection();
+
+        let firstMatchName = null;
+        let matchCount = 0;
+        document.querySelectorAll(".tbl-group").forEach((el) => {
+          const n = (el.dataset.name || "").toLowerCase();
+          const match = n.includes(activeSearch);
+          if (match) {
+            matchCount++;
+            if (!firstMatchName) firstMatchName = el.dataset.name;
+          }
+          el.classList.toggle("highlighted", match);
+          el.classList.toggle("dimmed", !match);
+          const ht = el.querySelector(".ht");
+          if (ht) ht.setAttribute("fill", match ? "#93c5fd" : "#e2e4ea");
+          const bg = el.querySelector("rect.tbl-bg");
+          if (bg) bg.setAttribute("stroke", match ? "#3b82f6" : "#2e3442");
+        });
+
+        document
+          .querySelectorAll(".arrow-line")
+          .forEach((el) => el.classList.toggle("dimmed", matchCount > 0));
+        document
+          .querySelectorAll(".fk-dot")
+          .forEach((el) => el.classList.toggle("dimmed", matchCount > 0));
+
+        if (firstMatchName && tables[firstMatchName])
+          focusTable(firstMatchName);
+      }
+
+      function onArrowClick(idx) {
+        activeSearch = "";
+        activeTableFilter = null;
+        updateTableListActive();
+
+        const searchInput = document.getElementById("table-search");
+        if (searchInput) searchInput.value = "";
+
+        if (selectedArrow === idx) {
+          resetHL();
+          return;
+        }
+        selectedArrow = idx;
+        const r = refs[idx];
+        document.querySelectorAll(".arrow-line").forEach((el) => {
+          const i = +el.dataset.idx;
+          const hl = i === idx;
+          el.classList.toggle("highlighted", hl);
+          el.classList.toggle("dimmed", !hl);
+          el.setAttribute("marker-end", hl ? "url(#ahb)" : "url(#ah)");
+        });
+        document.querySelectorAll(".fk-dot").forEach((el) => {
+          const i = +el.dataset.idx;
+          el.classList.toggle("highlighted", i === idx);
+          el.classList.toggle("dimmed", i !== idx);
+          el.setAttribute("fill", i === idx ? "#3b82f6" : "#3a3f52");
+        });
+        document.querySelectorAll(".tbl-group").forEach((el) => {
+          const n = el.dataset.name;
+          const rel = n === r.from || n === r.to;
+          el.classList.toggle("highlighted", rel);
+          el.classList.toggle("dimmed", !rel);
+          if (rel) {
+            el.querySelector(".ht").setAttribute(
+              "fill",
+              n === r.from ? "#93c5fd" : "#bfdbfe",
+            );
+            el.querySelector("rect.tbl-bg").setAttribute(
+              "stroke",
+              n === r.from ? "#3b82f6" : "#60a5fa",
+            );
+          }
+        });
+      }
+
+      function resetHL() {
+        activeSearch = "";
+        activeTableFilter = null;
+
+        // Restore original positions and full re-render
+        Object.keys(tables).forEach((n) => {
+          const t = tables[n];
+          if (t.ox !== undefined) {
+            t.x = t.ox;
+            t.y = t.oy;
+          }
+        });
+        render();
+
+        updateTableListActive();
+
+        const searchInput = document.getElementById("table-search");
+        if (searchInput) searchInput.value = "";
+
+        const wrap = document.getElementById("canvas-wrap");
+        if (wrap) wrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+      }
+
+      function loadSrc(src) {
+        parseDSQL(src);
+        if (Object.keys(tables).length === 0) {
+          alert("No tables found. Check DBML syntax.");
+          return;
+        }
+        layout();
+        render();
+        document.getElementById("upload-section").style.display = "none";
+        document.getElementById("canvas-section").style.display = "flex";
+      }
+
+      // File input
+      document.getElementById("fi").addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => loadSrc(ev.target.result);
+        r.readAsText(f);
+      });
+
+      // Drag & drop
+      const dz = document.getElementById("drop-zone");
+      dz.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dz.classList.add("over");
+      });
+      dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+      dz.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dz.classList.remove("over");
+        const f = e.dataTransfer.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => loadSrc(ev.target.result);
+        r.readAsText(f);
+      });
+
+      // New file button
+      document.getElementById("new-btn").addEventListener("click", () => {
+        document.getElementById("upload-section").style.display = "flex";
+        document.getElementById("canvas-section").style.display = "none";
+        document.getElementById("fi").value = "";
+        const searchInput = document.getElementById("table-search");
+        if (searchInput) searchInput.value = "";
+        zoomLevel = 1;
+        resetHL();
+      });
+
+      // Toolbar search
+      document.getElementById("table-search").addEventListener("input", (e) => {
+        applyTableSearch(e.target.value);
+      });
+      document.getElementById("clear-search").addEventListener("click", () => {
+        const searchInput = document.getElementById("table-search");
+        searchInput.value = "";
+        resetHL();
+      });
+
+      // Sidebar search filter
+      document
+        .getElementById("sidebar-search")
+        .addEventListener("input", (e) => {
+          renderTableList(e.target.value);
+        });
+
+      // Zoom buttons only
+      document.getElementById("zoom-in").addEventListener("click", () => {
+        setZoom(zoomLevel + 0.1);
+      });
+      document.getElementById("zoom-out").addEventListener("click", () => {
+        setZoom(zoomLevel - 0.1);
+      });
+      document.getElementById("zoom-reset").addEventListener("click", () => {
+        setZoom(1);
+      });
+
+      // Drag pan only
+      const canvasWrap = document.getElementById("canvas-wrap");
+      let isPanning = false;
+      let didPan = false;
+      let panStartX = 0;
+      let panStartY = 0;
+      let panScrollLeft = 0;
+      let panScrollTop = 0;
+
+      canvasWrap.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+        const tgt = e.target;
+        if (tgt && tgt.closest && tgt.closest(".arrow-line, .fk-dot")) return;
+
+        isPanning = true;
+        didPan = false;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panScrollLeft = canvasWrap.scrollLeft;
+        panScrollTop = canvasWrap.scrollTop;
+        canvasWrap.classList.add("panning");
+        e.preventDefault();
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isPanning) return;
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) didPan = true;
+        canvasWrap.scrollLeft = panScrollLeft - dx;
+        canvasWrap.scrollTop = panScrollTop - dy;
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (!isPanning) return;
+        isPanning = false;
+        canvasWrap.classList.remove("panning");
+        if (didPan) suppressCanvasClick = true;
+      });
+
+      window.addEventListener("resize", () => {
+        applyZoom();
+      });
+
+      // Demo
+      document.getElementById("demo-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        loadSrc(`
+Table users {
+  id int [pk]
+  name varchar
+  email varchar
+  role varchar
+  created_at timestamp
+}
+
+Table posts {
+  id int [pk]
+  user_id int
+  title varchar
+  body text
+  published_at timestamp
+}
+
+Table comments {
+  id int [pk]
+  post_id int
+  user_id int
+  body text
+  created_at timestamp
+}
+
+Table tags {
+  id int [pk]
+  name varchar
+  slug varchar
+}
+
+Table post_tags {
+  post_id int
+  tag_id int
+}
+
+Table sessions {
+  id int [pk]
+  user_id int
+  token varchar
+  expires_at timestamp
+}
+
+Ref: posts.user_id > users.id
+Ref: comments.post_id > posts.id
+Ref: comments.user_id > users.id
+Ref: post_tags.post_id > posts.id
+Ref: post_tags.tag_id > tags.id
+Ref: sessions.user_id > users.id
+  `);
+      });
+    </script>
+  </body>
+</html>
