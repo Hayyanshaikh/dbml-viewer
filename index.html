@@ -747,6 +747,178 @@
         color: #bfdbfe;
       }
 
+      #ui-tooltip {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9998;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text);
+        white-space: nowrap;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+
+      #ui-tooltip.visible {
+        opacity: 1;
+      }
+
+      #ui-tooltip .tt-plus,
+      #ui-tooltip .tt-sep {
+        color: var(--muted);
+      }
+
+      #ui-tooltip .tt-plus {
+        padding: 0 2px;
+      }
+
+      #ui-tooltip .tt-sep {
+        padding: 0 5px;
+      }
+
+      #ui-tooltip kbd {
+        border: 1px solid var(--border2);
+        background: var(--surface);
+        border-radius: 5px;
+        padding: 2px 7px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text);
+      }
+
+      #shortcuts-help-btn {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid var(--border2);
+        background: var(--surface2);
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 50;
+        transition: all 0.15s;
+      }
+
+      #shortcuts-help-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+
+      #shortcuts-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(6, 8, 12, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 80;
+        padding: 18px;
+      }
+
+      #shortcuts-modal.open {
+        display: flex;
+      }
+
+      #shortcuts-dialog {
+        width: min(680px, 100%);
+        max-height: min(82vh, 680px);
+        overflow: auto;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: 12px;
+        box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+      }
+
+      #shortcuts-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      #shortcuts-head h3 {
+        font-family: "Syne", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      #shortcuts-close {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        border: 1px solid var(--border2);
+        background: transparent;
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      #shortcuts-close:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #shortcuts-list {
+        list-style: none;
+        padding: 10px 12px 12px;
+      }
+
+      #shortcuts-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 6px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      #shortcuts-list li:last-child {
+        border-bottom: 0;
+      }
+
+      #shortcuts-list .sc-action {
+        color: var(--text);
+        font-size: 11px;
+      }
+
+      #shortcuts-list .sc-keys {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      #shortcuts-list kbd {
+        border: 1px solid var(--border2);
+        background: var(--surface2);
+        border-radius: 5px;
+        padding: 2px 7px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text);
+      }
+
       @media (max-width: 900px) {
         #editor-sidebar {
           width: 280px;
@@ -765,6 +937,11 @@
         #editor-sidebar {
           width: 46vw;
           min-width: 180px;
+        }
+
+        #shortcuts-help-btn {
+          right: 10px;
+          bottom: 10px;
         }
       }
     </style>
@@ -854,7 +1031,7 @@
         </div>
         <div class="spacer"></div>
         <span id="hint-text"
-          >Click arrow/table search · click canvas to reset</span
+          >Click arrow/table search · use Reset button to clear</span
         >
         <button id="new-btn">↑ New file</button>
       </div>
@@ -869,7 +1046,6 @@
                 class="collapse-btn"
                 type="button"
                 aria-label="Collapse editor sidebar"
-                title="Toggle editor"
               >
                 <
               </button>
@@ -894,7 +1070,6 @@
                 class="collapse-btn"
                 type="button"
                 aria-label="Collapse tables sidebar"
-                title="Toggle tables"
               >
                 <
               </button>
@@ -914,6 +1089,31 @@
       </div>
     </div>
 
+    <button
+      id="shortcuts-help-btn"
+      type="button"
+      aria-label="Open keyboard shortcuts"
+    >
+      ?
+    </button>
+
+    <div id="shortcuts-modal" aria-hidden="true" role="dialog">
+      <div id="shortcuts-dialog" role="document">
+        <div id="shortcuts-head">
+          <h3>Keyboard Shortcuts</h3>
+          <button
+            id="shortcuts-close"
+            type="button"
+            aria-label="Close shortcuts"
+          >
+            X
+          </button>
+        </div>
+        <ul id="shortcuts-list"></ul>
+      </div>
+    </div>
+    <div id="ui-tooltip"></div>
+
     <script>
       const FIELD_H = 24,
         HDR_H = 32,
@@ -926,6 +1126,7 @@
         refs = [],
         selectedArrow = null,
         activeTableFilter = null,
+        tableFilterBeforeSearch = null,
         zoomLevel = 1,
         activeSearch = "",
         baseSvgW = 0,
@@ -940,6 +1141,63 @@
   id int [pk]
   name varchar
 }`;
+
+      const SHORTCUTS = [
+        { keys: "?", action: "Open shortcuts panel" },
+        { keys: "Esc", action: "Close modal / clear selected arrow" },
+        { keys: "Ctrl+F", action: "Focus header table search" },
+        { keys: "Ctrl+L", action: "Focus sidebar table filter" },
+        { keys: "Ctrl+R", action: "Run reset button action" },
+        { keys: "Ctrl+=", action: "Zoom in" },
+        { keys: "Ctrl+-", action: "Zoom out" },
+        { keys: "Ctrl+0", action: "Zoom reset button action" },
+        { keys: "Ctrl+B", action: "Toggle tables sidebar" },
+        { keys: "Ctrl+E", action: "Toggle editor sidebar" },
+        { keys: "Alt+T", action: "Toggle theme" },
+        { keys: "Alt+N", action: "New file" },
+        { keys: "Ctrl+U", action: "Open file picker" },
+        { keys: "Ctrl+M", action: "Start manual DBML mode" },
+      ];
+
+      const CONTROL_SHORTCUTS = [
+        { selector: "#shortcuts-help-btn", label: "Shortcuts", keys: "?" },
+        { selector: "#shortcuts-close", label: "Close shortcuts", keys: "Esc" },
+        { selector: "#theme-toggle", label: "Toggle theme", keys: "Alt+T" },
+        {
+          selector: "#table-search",
+          label: "Header table search",
+          keys: "Ctrl+F",
+        },
+        { selector: "#clear-search", label: "Clear header search", keys: "-" },
+        {
+          selector: "#sidebar-search",
+          label: "Sidebar table filter",
+          keys: "Ctrl+L",
+        },
+        { selector: "#zoom-in", label: "Zoom in", keys: "Ctrl+=" },
+        { selector: "#zoom-out", label: "Zoom out", keys: "Ctrl+-" },
+        {
+          selector: "#zoom-reset",
+          label: "Reset view",
+          keys: "Ctrl+0, Ctrl+R",
+        },
+        { selector: "#new-btn", label: "New file", keys: "Alt+N" },
+        {
+          selector: "#write-btn",
+          label: "Write DBML manually",
+          keys: "Ctrl+M",
+        },
+        {
+          selector: "#editor-toggle",
+          label: "Toggle editor sidebar",
+          keys: "Ctrl+E",
+        },
+        {
+          selector: "#table-toggle",
+          label: "Toggle tables sidebar",
+          keys: "Ctrl+B",
+        },
+      ];
 
       function parseDSQL(src) {
         const parsedTables = {};
@@ -1144,6 +1402,150 @@
         localStorage.setItem("dbml-viewer-theme", currentTheme);
         updateEditorDecorations();
         if (Object.keys(tables).length > 0) render();
+      }
+
+      function openShortcutsModal() {
+        const modal = document.getElementById("shortcuts-modal");
+        if (!modal) return;
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeShortcutsModal() {
+        const modal = document.getElementById("shortcuts-modal");
+        if (!modal) return;
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      function isShortcutsModalOpen() {
+        const modal = document.getElementById("shortcuts-modal");
+        return !!(modal && modal.classList.contains("open"));
+      }
+
+      function isTypingInField(target) {
+        if (!target) return false;
+        if (target.isContentEditable) return true;
+        const tag = (target.tagName || "").toLowerCase();
+        return tag === "input" || tag === "textarea" || tag === "select";
+      }
+
+      function applyControlShortcutTooltips() {
+        const tip = document.getElementById("ui-tooltip");
+        if (!tip) return;
+
+        const renderCombo = (comboRaw) => {
+          const combo = (comboRaw || "").trim();
+          if (!combo) return "";
+          let tokens = combo.split("+");
+          if (combo.endsWith("++")) {
+            while (tokens.length && tokens[tokens.length - 1] === "") {
+              tokens.pop();
+            }
+            tokens.push("+");
+          }
+          tokens = tokens.filter((t) => t !== "");
+          return tokens
+            .map((part) => `<kbd>${escapeHtml(part)}</kbd>`)
+            .join('<span class="tt-plus">+</span>');
+        };
+
+        const renderKeysHtml = (keysRaw) => {
+          const keys = (keysRaw || "").trim();
+          if (!keys || keys === "-") return "";
+          return keys
+            .split(",")
+            .map((combo) => renderCombo(combo))
+            .filter(Boolean)
+            .join('<span class="tt-sep">/</span>');
+        };
+
+        const placeTip = (x, y) => {
+          const pad = 12;
+          const tw = tip.offsetWidth || 120;
+          const th = tip.offsetHeight || 28;
+          let nx = x + pad;
+          let ny = y - Math.round(th / 2);
+          if (nx + tw > window.innerWidth - 8) nx = x - tw - pad;
+          if (ny < 8) ny = 8;
+          if (ny + th > window.innerHeight - 8)
+            ny = window.innerHeight - th - 8;
+          tip.style.left = nx + "px";
+          tip.style.top = ny + "px";
+        };
+
+        const showTip = (el, x, y) => {
+          const html = el.getAttribute("data-ui-tip") || "";
+          if (!html) return;
+          tip.innerHTML = html;
+          tip.classList.add("visible");
+          placeTip(x, y);
+        };
+
+        const hideTip = () => {
+          tip.classList.remove("visible");
+        };
+
+        CONTROL_SHORTCUTS.forEach((item) => {
+          const el = document.querySelector(item.selector);
+          if (!el) return;
+
+          const keysHtml = renderKeysHtml(item.keys);
+          if (!keysHtml) return;
+
+          el.setAttribute("data-ui-tip", keysHtml);
+          if (el.hasAttribute("title")) el.removeAttribute("title");
+
+          if (el.dataset.tipBound === "1") return;
+
+          el.addEventListener("mouseenter", (e) => {
+            showTip(el, e.clientX, e.clientY);
+          });
+          el.addEventListener("mousemove", (e) => {
+            if (tip.classList.contains("visible"))
+              placeTip(e.clientX, e.clientY);
+          });
+          el.addEventListener("mouseleave", hideTip);
+          el.addEventListener("focus", () => {
+            const r = el.getBoundingClientRect();
+            showTip(el, r.right, r.top + r.height / 2);
+          });
+          el.addEventListener("blur", hideTip);
+
+          el.dataset.tipBound = "1";
+        });
+
+        document.addEventListener("scroll", hideTip, true);
+        window.addEventListener("resize", hideTip);
+      }
+
+      function renderShortcutsList() {
+        const list = document.getElementById("shortcuts-list");
+        if (!list) return;
+
+        const renderCombo = (comboRaw) => {
+          const combo = comboRaw.trim();
+          if (!combo) return "";
+          let tokens = combo.split("+");
+          if (combo.endsWith("++")) {
+            while (tokens.length && tokens[tokens.length - 1] === "") {
+              tokens.pop();
+            }
+            tokens.push("+");
+          }
+          tokens = tokens.filter((t) => t !== "");
+          return tokens
+            .map((part) => `<kbd>${escapeHtml(part)}</kbd>`)
+            .join('<span style="color: var(--muted)">+</span>');
+        };
+
+        list.innerHTML = SHORTCUTS.map((item) => {
+          const keyParts = item.keys
+            .split(",")
+            .map((combo) => renderCombo(combo))
+            .join('<span style="color: var(--muted); padding: 0 4px">/</span>');
+          return `<li><span class="sc-action">${escapeHtml(item.action)}</span><span class="sc-keys">${keyParts}</span></li>`;
+        }).join("");
       }
 
       function escapeHtml(s) {
@@ -1523,7 +1925,9 @@
             suppressCanvasClick = false;
             return;
           }
-          resetHL();
+          if (selectedArrow !== null) {
+            clearArrowSelectionVisuals();
+          }
         };
         document.getElementById("canvas-wrap").style.zIndex = 1;
         applyZoom();
@@ -1617,11 +2021,12 @@
         updateTableListActive();
       }
 
-      function applyTableFilter(tableName) {
+      function applyTableFilter(tableName, force = false) {
         if (!tables[tableName]) return;
+        tableFilterBeforeSearch = null;
 
         // Toggle off if same table clicked again
-        if (activeTableFilter === tableName) {
+        if (!force && activeTableFilter === tableName) {
           activeTableFilter = null;
           updateTableListActive();
           resetHL();
@@ -1729,80 +2134,45 @@
         });
       }
 
+      function clearArrowSelectionVisuals() {
+        resetArrowSelection();
+        document.querySelectorAll(".tbl-group").forEach((el) => {
+          el.classList.remove("highlighted", "dimmed");
+          const ht = el.querySelector(".ht");
+          if (ht) ht.setAttribute("fill", cssVar("--table-header-text"));
+          const bg = el.querySelector("rect.tbl-bg");
+          if (bg) bg.setAttribute("stroke", cssVar("--border2"));
+        });
+      }
+
       function applyTableSearch(query) {
+        const wasSearching = !!activeSearch;
         const q = (query || "").trim();
+        if (q && !wasSearching) {
+          tableFilterBeforeSearch = activeTableFilter;
+        }
         activeSearch = q.toLowerCase();
 
         if (!activeSearch) {
+          if (tableFilterBeforeSearch && tables[tableFilterBeforeSearch]) {
+            const restoreTable = tableFilterBeforeSearch;
+            tableFilterBeforeSearch = null;
+            applyTableFilter(restoreTable, true);
+            return;
+          }
+          tableFilterBeforeSearch = null;
           resetHL();
           return;
         }
 
-        // Check for exact match (case-insensitive)
-        const exactKey = Object.keys(tables).find(
-          (n) => n.toLowerCase() === activeSearch,
-        );
-
-        if (exactKey) {
-          // Exact match → behave exactly like sidebar filter
-          activeTableFilter = exactKey;
-          updateTableListActive();
-
-          const related = new Set([exactKey]);
-          refs.forEach((r) => {
-            if (r.from === exactKey || r.to === exactKey) {
-              related.add(r.from);
-              related.add(r.to);
-            }
-          });
-          const relatedArr = [
-            exactKey,
-            ...[...related].filter((n) => n !== exactKey).sort(),
-          ];
-
-          layoutNames(relatedArr);
-          render();
-
-          document.querySelectorAll(".tbl-group").forEach((el) => {
-            const n = el.dataset.name;
-            const rel = related.has(n);
-            const root = n === exactKey;
-            el.style.display = rel ? "" : "none";
-            if (rel) {
-              const ht = el.querySelector(".ht");
-              if (ht) ht.setAttribute("fill", root ? "#93c5fd" : "#e2e4ea");
-              const bg = el.querySelector("rect.tbl-bg");
-              if (bg) {
-                bg.setAttribute("stroke", root ? "#3b82f6" : "#2e3442");
-                if (root)
-                  bg.setAttribute(
-                    "filter",
-                    "drop-shadow(0 0 10px rgba(59,130,246,0.4))",
-                  );
-              }
-            }
-          });
-
-          document.querySelectorAll(".arrow-line, .fk-dot").forEach((el) => {
-            const i = +el.dataset.idx;
-            const r = refs[i];
-            const rel = r && (r.from === exactKey || r.to === exactKey);
-            el.style.display = rel ? "" : "none";
-          });
-
-          const wrap = document.getElementById("canvas-wrap");
-          if (wrap) wrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
-          return;
-        }
-
-        // Partial match → highlight matching tables, dim rest
-        activeTableFilter = null;
-        updateTableListActive();
+        // Highlight-only search. If sidebar filter is active, only search visible tables.
         resetArrowSelection();
 
         let firstMatchName = null;
         let matchCount = 0;
         document.querySelectorAll(".tbl-group").forEach((el) => {
+          const visible = getComputedStyle(el).display !== "none";
+          if (!visible) return;
           const n = (el.dataset.name || "").toLowerCase();
           const match = n.includes(activeSearch);
           if (match) {
@@ -1837,7 +2207,7 @@
         if (searchInput) searchInput.value = "";
 
         if (selectedArrow === idx) {
-          resetHL();
+          clearArrowSelectionVisuals();
           return;
         }
         selectedArrow = idx;
@@ -1876,6 +2246,7 @@
       function resetHL() {
         activeSearch = "";
         activeTableFilter = null;
+        tableFilterBeforeSearch = null;
 
         // Restore original positions and full re-render
         Object.keys(tables).forEach((n) => {
@@ -2009,20 +2380,131 @@
       });
 
       window.addEventListener("keydown", (e) => {
-        if (!e.ctrlKey || e.altKey || e.metaKey) return;
+        const k = (e.key || "").toLowerCase();
         const canvasVisible =
           document.getElementById("canvas-section").style.display === "flex";
+        const typing = isTypingInField(e.target);
+
+        if (e.altKey && !e.ctrlKey && !e.metaKey) {
+          if (k === "t") {
+            e.preventDefault();
+            setTheme(currentTheme === "dark" ? "light" : "dark");
+            return;
+          }
+
+          if (k === "n") {
+            e.preventDefault();
+            document.getElementById("new-btn").click();
+            return;
+          }
+        }
+
+        if ((k === "?" || (k === "/" && e.shiftKey)) && !typing) {
+          e.preventDefault();
+          openShortcutsModal();
+          return;
+        }
+
+        if (k === "escape") {
+          if (isShortcutsModalOpen()) {
+            e.preventDefault();
+            closeShortcutsModal();
+            return;
+          }
+          if (selectedArrow !== null) {
+            e.preventDefault();
+            clearArrowSelectionVisuals();
+          }
+          return;
+        }
+
+        if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+
+        if (k === "u") {
+          e.preventDefault();
+          const fileInput = document.getElementById("fi");
+          if (fileInput) fileInput.click();
+          return;
+        }
+
+        if (k === "m") {
+          e.preventDefault();
+          document.getElementById("write-btn").click();
+          return;
+        }
+
         if (!canvasVisible) return;
 
-        const k = (e.key || "").toLowerCase();
+        if (k === "f") {
+          e.preventDefault();
+          const search = document.getElementById("table-search");
+          if (search) search.focus();
+          return;
+        }
+
+        if (k === "l") {
+          e.preventDefault();
+          const sidebarSearch = document.getElementById("sidebar-search");
+          if (sidebarSearch) sidebarSearch.focus();
+          return;
+        }
+
         if (k === "b") {
           e.preventDefault();
           setTableCollapsed(!tableCollapsed);
-        } else if (k === "e") {
+          return;
+        }
+
+        if (k === "e") {
           e.preventDefault();
           setEditorCollapsed(!editorCollapsed);
+          return;
+        }
+
+        if (k === "r") {
+          e.preventDefault();
+          document.getElementById("zoom-reset").click();
+          return;
+        }
+
+        if (k === "0") {
+          e.preventDefault();
+          document.getElementById("zoom-reset").click();
+          return;
+        }
+
+        if (k === "=" || k === "+") {
+          e.preventDefault();
+          setZoom(zoomLevel + 0.1);
+          return;
+        }
+
+        if (k === "-") {
+          e.preventDefault();
+          setZoom(zoomLevel - 0.1);
+          return;
         }
       });
+
+      document
+        .getElementById("shortcuts-help-btn")
+        .addEventListener("click", () => {
+          openShortcutsModal();
+        });
+
+      document
+        .getElementById("shortcuts-close")
+        .addEventListener("click", () => {
+          closeShortcutsModal();
+        });
+
+      document
+        .getElementById("shortcuts-modal")
+        .addEventListener("click", (e) => {
+          if (e.target && e.target.id === "shortcuts-modal") {
+            closeShortcutsModal();
+          }
+        });
 
       document.getElementById("dbml-editor").addEventListener("input", (e) => {
         const src = e.target.value;
@@ -2046,7 +2528,7 @@
       document.getElementById("clear-search").addEventListener("click", () => {
         const searchInput = document.getElementById("table-search");
         searchInput.value = "";
-        resetHL();
+        applyTableSearch("");
       });
 
       // Sidebar search filter
@@ -2065,6 +2547,7 @@
       });
       document.getElementById("zoom-reset").addEventListener("click", () => {
         setZoom(1);
+        resetHL();
       });
 
       // Drag pan only
@@ -2167,6 +2650,8 @@ Ref: sessions.user_id > users.id
       });
 
       const savedTheme = localStorage.getItem("dbml-viewer-theme");
+      renderShortcutsList();
+      applyControlShortcutTooltips();
       setTheme(savedTheme || "dark");
       updateEditorDecorations();
     </script>
